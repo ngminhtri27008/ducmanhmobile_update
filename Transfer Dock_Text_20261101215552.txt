@@ -1,0 +1,3 @@
+// Mã nguồn điều khiển tra cứu giá cơ bản
+document.getElementById('year').textContent = new Date().getFullYear();
+console.log("Đức Mạnh Mobile initialized.");
