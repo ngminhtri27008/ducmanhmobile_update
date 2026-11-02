@@ -1,756 +1,691 @@
-
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ĐỨC MẠNH MOBILE - Quản Lý Báo Giá Linh Kiện</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- FontAwesome Icons -->
+    <title>ĐỨC MẠNH MOBILE - Hệ Thống Báo Giá & Quản Lý Linh Kiện Realtime</title>
+    <!-- FontAwesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border: #475569;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            padding-bottom: 60px;
+        }
+
+        /* HEADER */
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            background: var(--accent);
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .logo-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+
+        .logo-text p {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+        }
+
+        .search-global {
+            flex: 1;
+            max-width: 450px;
+            position: relative;
+        }
+
+        .search-global input {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-global input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+        }
+
+        .search-global i {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-sub);
+        }
+
+        /* MAIN CONTENT */
+        main {
+            max-width: 1400px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* SIDEBAR: BRAND & MODEL SELECTION */
+        .sidebar {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            height: fit-content;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-sub);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 1.5rem;
+        }
+
+        .brand-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .brand-btn:hover, .brand-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .model-list {
+            max-height: 450px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-right: 4px;
+        }
+
+        .model-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .model-btn:hover {
+            background: var(--bg-card);
+        }
+
+        .model-btn.active {
+            background: rgba(37, 99, 235, 0.2);
+            border-color: var(--accent);
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        /* CONTENT AREA: PRICING TABLE */
+        .content-area {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+        }
+
+        .model-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .model-info h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .model-info span {
+            font-size: 0.85rem;
+            color: var(--accent);
+            background: rgba(37, 99, 235, 0.15);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { filter: brightness(1.1); }
+
+        /* TABLE DESIGN */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--bg-primary);
+            color: var(--text-sub);
+            padding: 10px 12px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .input-price {
+            width: 110px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 6px 8px;
+            color: #fff;
+            font-size: 0.85rem;
+            text-align: right;
+        }
+
+        .input-price:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+
+        .margin-tag {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .margin-good { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .margin-low { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+        /* MODAL ZALO COPY */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            padding: 1.5rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 250px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: #fff;
+            padding: 10px;
+            font-size: 0.9rem;
+            resize: none;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-rose-500 selection:text-white">
+<body>
 
     <!-- HEADER -->
-    <header class="bg-slate-900/80 border-b border-slate-800 sticky top-0 z-40 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center gap-3 cursor-pointer" onclick="goHome()">
-                <div class="bg-gradient-to-tr from-rose-600 to-amber-500 p-2.5 rounded-xl shadow-lg shadow-rose-900/20 text-white">
-                    <i class="fa-solid fa-mobile-screen-button text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-wider bg-gradient-to-r from-rose-400 via-amber-200 to-white bg-clip-text text-transparent uppercase">ĐỨC MẠNH MOBILE</h1>
-                    <p class="text-xs text-slate-400 font-medium">Hệ Thống Báo Giá & Quản Lý Linh Kiện Realtime</p>
+    <header>
+        <div class="header-container">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                <div class="logo-text">
+                    <h1>ĐỨC MẠNH MOBILE</h1>
+                    <p>Hệ Thống Báo Giá Linh Kiện & Dịch Vụ Sửa Chữa</p>
                 </div>
             </div>
 
-            <!-- Breadcrumb Navigation -->
-            <div id="breadcrumb" class="hidden md:flex items-center gap-2 text-sm text-slate-400 bg-slate-900/60 px-4 py-1.5 rounded-full border border-slate-800">
-                <span class="cursor-pointer hover:text-rose-400 transition" onclick="goHome()"><i class="fa-solid fa-house mr-1"></i> Trang chủ</span>
-                <span id="bc-brand-wrap" class="hidden items-center gap-2">
-                    <i class="fa-solid fa-chevron-right text-xs text-slate-600"></i>
-                    <span id="bc-brand" class="text-slate-200 font-medium"></span>
-                </span>
-                <span id="bc-model-wrap" class="hidden items-center gap-2">
-                    <i class="fa-solid fa-chevron-right text-xs text-slate-600"></i>
-                    <span id="bc-model" class="text-rose-400 font-medium"></span>
-                </span>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <span id="sync-status" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Đã kết nối Cloud
-                </span>
+            <div class="search-global">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="globalSearch" placeholder="Tìm nhanh dòng máy (VD: 15 Pro Max, S24 Ultra...)" oninput="handleSearch()">
             </div>
         </div>
     </header>
 
-    <!-- MAIN CONTAINER -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 flex flex-col gap-6">
+    <!-- MAIN APP CONTAINER -->
+    <main>
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="section-title">Thương Hiệu</div>
+            <div class="brand-list" id="brandList"></div>
 
-        <!-- VIEW 1: BRANDS (HÃNG) -->
-        <section id="view-brands" class="space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/50 p-6 rounded-2xl border border-slate-800/80 shadow-xl">
-                <div>
-                    <h2 class="text-2xl font-bold text-white tracking-wide">Chọn Hãng Điện Thoại</h2>
-                    <p class="text-sm text-slate-400 mt-1">Chọn một thương hiệu bên dưới hoặc thêm hãng mới vào hệ thống chung.</p>
-                </div>
-                <div class="relative w-full sm:w-72">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </span>
-                    <input type="text" id="brand-search" oninput="filterBrands()" placeholder="Tìm kiếm hãng..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-rose-500 transition shadow-inner">
-                </div>
+            <div class="section-title" style="margin-top: 1rem;">
+                Danh Sách Model
+                <span id="modelCount" style="font-size: 0.75rem; color: var(--accent);">0</span>
             </div>
+            <div class="model-list" id="modelList"></div>
+        </aside>
 
-            <!-- Brand Grid -->
-            <div id="brands-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                <!-- Rendered dynamically -->
-            </div>
-        </section>
-
-        <!-- VIEW 2: MODELS (DÒNG MÁY) -->
-        <section id="view-models" class="space-y-6 hidden">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/50 p-6 rounded-2xl border border-slate-800/80 shadow-xl">
-                <div class="flex items-center gap-4">
-                    <button onclick="goHome()" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition border border-slate-700">
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </button>
-                    <div>
-                        <h2 id="current-brand-title" class="text-2xl font-bold text-white tracking-wide">Danh Sách Model</h2>
-                        <p class="text-sm text-slate-400 mt-1">Chọn dòng máy cần báo giá hoặc thêm model mới.</p>
-                    </div>
+        <!-- MAIN TABLE AREA -->
+        <section class="content-area">
+            <div class="model-header">
+                <div class="model-info">
+                    <span id="selectedBrand">APPLE</span>
+                    <h2 id="selectedModel">iPhone 15 Pro Max</h2>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="relative w-full sm:w-64">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </span>
-                        <input type="text" id="model-search" oninput="filterModels()" placeholder="Tìm kiếm model máy..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-rose-500 transition shadow-inner">
-                    </div>
-                    <button onclick="openAddModelModal()" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shadow-lg shadow-rose-900/30 flex items-center gap-2 whitespace-nowrap">
-                        <i class="fa-solid fa-plus"></i> Thêm Model
+                <div class="action-btns">
+                    <button class="btn btn-success" onclick="openZaloModal()">
+                        <i class="fa-solid fa-copy"></i> Copy Gửi Zalo
                     </button>
                 </div>
             </div>
 
-            <!-- Models Grid -->
-            <div id="models-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <!-- Rendered dynamically -->
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Hạng Mục Sửa Chữa / Linh Kiện</th>
+                            <th>Giá Nhập (VNĐ)</th>
+                            <th>Giá Thay Thế / Sửa (VNĐ)</th>
+                            <th>Lợi Nhuận (%)</th>
+                            <th>Bảo Hành</th>
+                        </tr>
+                    </thead>
+                    <tbody id="priceTableBody"></tbody>
+                </table>
             </div>
         </section>
-
-        <!-- VIEW 3: SERVICES & PRICING (BẢNG GIÁ LỖI) -->
-        <section id="view-pricing" class="space-y-6 hidden">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/50 p-6 rounded-2xl border border-slate-800/80 shadow-xl">
-                <div class="flex items-center gap-4">
-                    <button onclick="backToModels()" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition border border-slate-700">
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </button>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span id="pricing-brand-badge" class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30">Hãng</span>
-                            <h2 id="current-model-title" class="text-2xl font-bold text-white tracking-wide">Báo Giá Sửa Chữa</h2>
-                        </div>
-                        <p class="text-sm text-slate-400 mt-1">Nhập giá trực tiếp vào ô trống. Dữ liệu tự động lưu & đồng bộ thời gian thực.</p>
-                    </div>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <!-- Ô lọc nhanh trong bảng giá -->
-                    <div class="relative w-full sm:w-56">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-                            <i class="fa-solid fa-filter text-xs"></i>
-                        </span>
-                        <input type="text" id="pricing-search" oninput="filterPricingTable()" placeholder="Lọc nhanh linh kiện..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-rose-500 transition shadow-inner">
-                    </div>
-                    <button onclick="openAddServiceModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2 rounded-xl text-xs font-medium transition border border-slate-700 flex items-center gap-1.5">
-                        <i class="fa-solid fa-plus"></i> Thêm Dịch Vụ
-                    </button>
-                    <button onclick="openExportModal()" class="bg-sky-600 hover:bg-sky-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-lg shadow-sky-900/30 flex items-center gap-1.5">
-                        <i class="fa-solid fa-share-nodes"></i> Xuất Gửi Khách
-                    </button>
-                    <button onclick="saveAllPrices()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition shadow-lg shadow-emerald-900/30 flex items-center gap-1.5">
-                        <i class="fa-solid fa-floppy-disk"></i> Lưu Tất Cả
-                    </button>
-                </div>
-            </div>
-
-            <!-- Pricing Table Container -->
-            <div class="bg-slate-900/60 rounded-2xl border border-slate-800/80 overflow-hidden shadow-2xl">
-                <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                                <th class="p-4 w-12 text-center">#</th>
-                                <th class="p-4 min-w-[200px]">Hạng Mục Sửa Chữa / Linh Kiện</th>
-                                <th class="p-4 min-w-[150px]">Giá Nhập (VNĐ)</th>
-                                <th class="p-4 min-w-[150px]">Giá Thay Thế (VNĐ)</th>
-                                <th class="p-4 min-w-[150px]">Giá Sửa Chữa (VNĐ)</th>
-                                <th class="p-4 min-w-[200px]">Ghi Chú / Bảo Hành</th>
-                                <th class="p-4 w-16 text-center">Xóa</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pricing-tbody" class="divide-y divide-slate-800/60 text-sm">
-                            <!-- Rendered dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
     </main>
 
-    <!-- MODAL: ADD BRAND -->
-    <div id="modal-brand" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-circle-plus text-rose-500"></i> Thêm Hãng Điện Thoại Mới
-                </h3>
-                <button onclick="closeModal('modal-brand')" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+    <!-- MODAL COPY BÁO GIÁ -->
+    <div class="modal" id="zaloModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-share-nodes"></i> Mẫu Báo Giá Khách Hàng</h3>
+                <button onclick="closeZaloModal()" style="background:none; border:none; color:#fff; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Tên hãng</label>
-                <input type="text" id="new-brand-name" placeholder="Ví dụ: OnePlus, Nokia..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-rose-500">
-            </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeModal('modal-brand')" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Hủy</button>
-                <button onclick="confirmAddBrand()" class="px-5 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 text-white transition shadow-lg shadow-rose-900/30">Thêm Hãng</button>
-            </div>
+            <textarea id="zaloText" readonly></textarea>
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="copyToClipboard()">
+                <i class="fa-solid fa-paste"></i> Sao Chép Tin Nhắn
+            </button>
         </div>
     </div>
 
-    <!-- MODAL: ADD MODEL -->
-    <div id="modal-model" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-mobile text-rose-500"></i> Thêm Dòng Máy Mới
-                </h3>
-                <button onclick="closeModal('modal-model')" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Tên model máy</label>
-                <input type="text" id="new-model-name" placeholder="Ví dụ: iPhone 17 Slim, Galaxy S26 Ultra..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-rose-500">
-            </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeModal('modal-model')" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Hủy</button>
-                <button onclick="confirmAddModel()" class="px-5 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 text-white transition shadow-lg shadow-rose-900/30">Thêm Model</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: ADD SERVICE -->
-    <div id="modal-service" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-wrench text-rose-500"></i> Thêm Dịch Vụ / Lỗi Mới
-                </h3>
-                <button onclick="closeModal('modal-service')" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Tên dịch vụ / linh kiện</label>
-                <input type="text" id="new-service-name" placeholder="Ví dụ: Thay kính lưng, độ vỏ..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-rose-500">
-            </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeModal('modal-service')" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Hủy</button>
-                <button onclick="confirmAddService()" class="px-5 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 text-white transition shadow-lg shadow-rose-900/30">Thêm Dịch Vụ</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: EXPORT PRICING -->
-    <div id="modal-export" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-lg shadow-2xl space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-copy text-sky-400"></i> Bảng Giá Gửi Khách Hàng
-                </h3>
-                <button onclick="closeModal('modal-export')" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div>
-                <p class="text-xs text-slate-400 mb-2">Nội dung đã được tối ưu để gửi qua Zalo / Facebook:</p>
-                <textarea id="export-text-content" rows="8" readonly class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 font-mono focus:outline-none"></textarea>
-            </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeModal('modal-export')" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Đóng</button>
-                <button onclick="copyExportText()" class="px-5 py-2 rounded-xl text-sm font-semibold bg-sky-600 hover:bg-sky-500 text-white transition shadow-lg shadow-sky-900/30">Sao Chép Nội Dung</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- SCRIPT LOGIC & FIREBASE -->
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDummyKeyForDucManhMobileRealtimeSync998877",
-            authDomain: "duc-manh-mobile.firebaseapp.com",
-            projectId: "duc-manh-mobile",
-            storageBucket: "duc-manh-mobile.appspot.com",
-            messagingSenderId: "1234567890",
-            appId: "1:1234567890:web:abcdef"
-        };
-
-        let db;
-        let isCloudConnected = false;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            isCloudConnected = true;
-        } catch (e) {
-            console.warn("Dùng chế độ LocalStorage offline do không kết nối được Cloud:", e);
-        }
-
-        const defaultServices = [
-            "Thay màn", "Thay pin", "Thay lưng", "Thay kính cam", "Thay xạc", 
-            "Thay loa trên", "Thay loa dưới", "Thay nút nguồn", "Thay nút volume", 
-            "Thay đèn flat", "Thay vỏ", "Sửa face", "Thay cáp loa trên", 
-            "Ép kính", "Ép cáp", "Ép IC kính"
+        // Standard 16 repair services
+        const SERVICES = [
+            "Thay màn", "Thay pin", "Thay lưng", "Thay kính cam",
+            "Thay sạc", "Thay loa trên", "Thay loa dưới", "Thay nút nguồn",
+            "Thay nút volume", "Thay đèn flash", "Thay vỏ", "Sửa Face ID",
+            "Thay cáp loa trên", "Ép kính", "Ép cáp", "Ép IC kính"
         ];
 
-        const initialData = {
-            "iPhone": {
-                name: "iPhone",
-                icon: "fa-brands fa-apple",
-                models: {
-                    "iPhone 4": {}, "iPhone 4S": {}, "iPhone 5": {}, "iPhone 5C": {}, "iPhone 5S": {}, "iPhone SE 1": {},
-                    "iPhone 6": {}, "iPhone 6 Plus": {}, "iPhone 6s": {}, "iPhone 6s Plus": {},
-                    "iPhone 7": {}, "iPhone 7 Plus": {}, "iPhone 8": {}, "iPhone 8 Plus": {},
-                    "iPhone X": {}, "iPhone XR": {}, "iPhone XS": {}, "iPhone XS Max": {},
-                    "iPhone 11": {}, "iPhone 11 Pro": {}, "iPhone 11 Pro Max": {}, "iPhone SE 2020": {},
-                    "iPhone 12 Mini": {}, "iPhone 12": {}, "iPhone 12 Pro": {}, "iPhone 12 Pro Max": {},
-                    "iPhone 13 Mini": {}, "iPhone 13": {}, "iPhone 13 Pro": {}, "iPhone 13 Pro Max": {}, "iPhone SE 2022": {},
-                    "iPhone 14": {}, "iPhone 14 Plus": {}, "iPhone 14 Pro": {}, "iPhone 14 Pro Max": {},
-                    "iPhone 15": {}, "iPhone 15 Plus": {}, "iPhone 15 Pro": {}, "iPhone 15 Pro Max": {},
-                    "iPhone 16": {}, "iPhone 16 Plus": {}, "iPhone 16 Pro": {}, "iPhone 16 Pro Max": {}, "iPhone 16e": {},
-                    "iPhone 17": {}, "iPhone 17 Air": {}, "iPhone 17 Pro": {}, "iPhone 17 Pro Max": {}
-                }
-            },
-            "Samsung": {
-                name: "Samsung",
-                icon: "fa-solid fa-mobile-screen",
-                models: {
-                    "Galaxy S3": {}, "Galaxy S4": {}, "Galaxy S5": {}, "Galaxy S6": {}, "Galaxy S7": {},
-                    "Galaxy S8": {}, "Galaxy S8+": {}, "Galaxy S9": {}, "Galaxy S9+": {},
-                    "Galaxy S10": {}, "Galaxy S10+": {}, "Galaxy S10e": {},
-                    "Galaxy Note 3": {}, "Galaxy Note 4": {}, "Galaxy Note 5": {}, "Galaxy Note 8": {}, "Galaxy Note 9": {}, "Galaxy Note 10": {}, "Galaxy Note 10+": {}, "Galaxy Note 20": {}, "Galaxy Note 20 Ultra": {},
-                    "Galaxy S20": {}, "Galaxy S20+": {}, "Galaxy S20 Ultra": {}, "Galaxy S20 FE": {},
-                    "Galaxy S21": {}, "Galaxy S21+": {}, "Galaxy S21 Ultra": {}, "Galaxy S21 FE": {},
-                    "Galaxy S22": {}, "Galaxy S22+": {}, "Galaxy S22 Ultra": {},
-                    "Galaxy S23": {}, "Galaxy S23+": {}, "Galaxy S23 Ultra": {}, "Galaxy S23 FE": {},
-                    "Galaxy S24": {}, "Galaxy S24+": {}, "Galaxy S24 Ultra": {}, "Galaxy S24 FE": {},
-                    "Galaxy S25": {}, "Galaxy S25 Edge": {}, "Galaxy S25 Ultra": {}, "Galaxy S25 FE": {},
-                    "Galaxy S26": {}, "Galaxy S26+": {}, "Galaxy S26 Ultra": {},
-                    "Galaxy Z Fold 5": {}, "Galaxy Z Fold 6": {}, "Galaxy Z Fold 7": {},
-                    "Galaxy Z Flip 5": {}, "Galaxy Z Flip 6": {}, "Galaxy Z Flip 7": {},
-                    "Galaxy A10": {}, "Galaxy A20": {}, "Galaxy A30": {}, "Galaxy A50": {}, "Galaxy A51": {}, "Galaxy A52": {}, "Galaxy A53": {}, "Galaxy A54": {}, "Galaxy A55": {}, "Galaxy A56": {}
-                }
-            },
-            "Oppo": {
-                name: "Oppo",
-                icon: "fa-solid fa-bolt",
-                models: {
-                    "Oppo A12": {}, "Oppo A15": {}, "Oppo A16": {}, "Oppo A53": {}, "Oppo A54": {}, "Oppo A55": {}, "Oppo A57": {}, "Oppo A58": {}, "Oppo A78": {}, "Oppo A98": {},
-                    "Oppo Reno 5": {}, "Oppo Reno 6": {}, "Oppo Reno 7": {}, "Oppo Reno 8": {}, "Oppo Reno 9": {}, "Oppo Reno 10": {}, "Oppo Reno 11": {}, "Oppo Reno 12": {}, "Oppo Reno 13": {},
-                    "Oppo Find X5": {}, "Oppo Find X5 Pro": {}, "Oppo Find X6": {}, "Oppo Find X6 Pro": {}, "Oppo Find X7": {}, "Oppo Find X7 Ultra": {}, "Oppo Find X8": {}, "Oppo Find X8 Pro": {}, "Oppo Find X9": {}
-                }
-            },
-            "Vivo": {
-                name: "Vivo",
-                icon: "fa-solid fa-fire",
-                models: {
-                    "Vivo Y12": {}, "Vivo Y20": {}, "Vivo Y21": {}, "Vivo Y35": {}, "Vivo Y36": {}, "Vivo Y55": {}, "Vivo Y100": {},
-                    "Vivo V20": {}, "Vivo V21": {}, "Vivo V23": {}, "Vivo V25": {}, "Vivo V27": {}, "Vivo V29": {}, "Vivo V30": {}, "Vivo V40": {}, "Vivo V50": {},
-                    "Vivo X80": {}, "Vivo X80 Pro": {}, "Vivo X90": {}, "Vivo X90 Pro": {}, "Vivo X100": {}, "Vivo X100 Pro": {}, "Vivo X200": {}, "Vivo X200 Pro": {}
-                }
-            },
-            "Realme": {
-                name: "Realme",
-                icon: "fa-solid fa-crown",
-                models: {
-                    "Realme C2": {}, "Realme C11": {}, "Realme C21": {}, "Realme C30": {}, "Realme C33": {}, "Realme C53": {}, "Realme C67": {},
-                    "Realme 5": {}, "Realme 6": {}, "Realme 7": {}, "Realme 8": {}, "Realme 9": {}, "Realme 10": {}, "Realme 11": {}, "Realme 12": {}, "Realme 13": {},
-                    "Realme GT Neo 2": {}, "Realme GT Neo 3": {}, "Realme GT Neo 5": {}, "Realme GT 6": {}
-                }
-            },
-            "Redmi": {
-                name: "Redmi",
-                icon: "fa-solid fa-shield-halved",
-                models: {
-                    "Redmi 9A": {}, "Redmi 9C": {}, "Redmi 10A": {}, "Redmi 12": {}, "Redmi 13": {}, "Redmi 14C": {},
-                    "Redmi Note 8": {}, "Redmi Note 8 Pro": {}, "Redmi Note 9": {}, "Redmi Note 9 Pro": {},
-                    "Redmi Note 10": {}, "Redmi Note 10 Pro": {}, "Redmi Note 11": {}, "Redmi Note 11 Pro": {},
-                    "Redmi Note 12": {}, "Redmi Note 12 Pro": {}, "Redmi Note 13": {}, "Redmi Note 13 Pro": {}, "Redmi Note 14": {}, "Redmi Note 14 Pro": {},
-                    "Redmi K40": {}, "Redmi K50": {}, "Redmi K60": {}, "Redmi K70": {}
-                }
-            }
+        // Database of Brands & Models
+        const DATABASE = {
+            "Apple": [
+                "iPhone 17 Pro Max", "iPhone 17 Pro", "iPhone 17", "iPhone Air",
+                "iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone 16 Plus", "iPhone 16",
+                "iPhone 15 Pro Max", "iPhone 15 Pro", "iPhone 15 Plus", "iPhone 15",
+                "iPhone 14 Pro Max", "iPhone 14 Pro", "iPhone 14 Plus", "iPhone 14",
+                "iPhone 13 Pro Max", "iPhone 13 Pro", "iPhone 13", "iPhone 13 mini",
+                "iPhone 12 Pro Max", "iPhone 12 Pro", "iPhone 12", "iPhone 11 Pro Max",
+                "iPhone 11", "iPhone XS Max", "iPhone XR", "iPhone X", "iPhone 8 Plus"
+            ],
+            "Samsung": [
+                "Galaxy S26 Ultra", "Galaxy S26+", "Galaxy S26",
+                "Galaxy S25 Ultra", "Galaxy S25+", "Galaxy S25",
+                "Galaxy Z Fold 7", "Galaxy Z Flip 7", "Galaxy Z Fold 6", "Galaxy Z Flip 6",
+                "Galaxy S24 Ultra", "Galaxy S24+", "Galaxy S24",
+                "Galaxy S23 Ultra", "Galaxy S23 FE", "Galaxy S22 Ultra", "Galaxy A55", "Galaxy A35"
+            ],
+            "Xiaomi": [
+                "Xiaomi 15 Pro", "Xiaomi 15", "Xiaomi 14 Ultra", "Xiaomi 14", 
+                "Redmi Note 14 Pro+", "Redmi Note 13 Pro", "Redmi Note 12", "POCO F6 Pro"
+            ],
+            "OPPO": [
+                "Find X8 Pro", "Find X7 Ultra", "Reno 12 Pro", "Reno 11", "OPPO A79"
+            ],
+            "vivo": [
+                "X100 Pro", "X90 Pro", "V30 Pro", "Y200"
+            ],
+            "Google": [
+                "Pixel 10 Pro", "Pixel 9 Pro XL", "Pixel 9", "Pixel 8 Pro", "Pixel 7a"
+            ]
         };
 
-        let storeData = JSON.parse(JSON.stringify(initialData));
-        let currentBrand = null;
-        let currentModel = null;
+        // Price Store (Format: prices[modelName][serviceName] = { cost: 0, sell: 0, warranty: '3 Tháng' })
+        let priceStore = {};
+        let currentBrand = "Apple";
+        let currentModel = "iPhone 15 Pro Max";
 
-        function initApp() {
-            if (isCloudConnected) {
-                db.collection("ducmanhmobile").doc("store_pricing").onSnapshot((doc) => {
-                    if (doc.exists) {
-                        storeData = doc.data().data || initialData;
-                        refreshCurrentView();
-                    } else {
-                        syncToCloud();
-                    }
-                }, (error) => {
-                    console.error("Lỗi đồng bộ Cloud:", error);
-                    loadFromLocalStorage();
-                });
-            } else {
-                loadFromLocalStorage();
-            }
+        // INIT APP
+        window.onload = () => {
             renderBrands();
+            selectBrand("Apple");
+        };
+
+        function renderBrands() {
+            const brandContainer = document.getElementById("brandList");
+            brandContainer.innerHTML = "";
+            Object.keys(DATABASE).forEach(brand => {
+                const btn = document.createElement("button");
+                btn.className = `brand-btn ${brand === currentBrand ? 'active' : ''}`;
+                btn.innerText = brand;
+                btn.onclick = () => selectBrand(brand);
+                brandContainer.appendChild(btn);
+            });
         }
 
-        function loadFromLocalStorage() {
-            const saved = localStorage.getItem("ducmanh_mobile_data");
-            if (saved) {
-                try { storeData = JSON.parse(saved); } catch (e) { console.error(e); }
-            }
-            refreshCurrentView();
-        }
-
-        function syncToCloud() {
-            if (isCloudConnected) {
-                db.collection("ducmanhmobile").doc("store_pricing").set({ data: storeData })
-                  .catch(err => console.error("Lỗi lưu Cloud:", err));
-            }
-            localStorage.setItem("ducmanh_mobile_data", JSON.stringify(storeData));
-        }
-
-        function refreshCurrentView() {
-            if (currentModel && currentBrand) {
-                renderPricingTable();
-            } else if (currentBrand) {
-                renderModels();
-            } else {
-                renderBrands();
-            }
-        }
-
-        function goHome() {
-            currentBrand = null;
-            currentModel = null;
-            document.getElementById("view-brands").classList.remove("hidden");
-            document.getElementById("view-models").classList.add("hidden");
-            document.getElementById("view-pricing").classList.add("hidden");
-            document.getElementById("bc-brand-wrap").classList.add("hidden");
-            document.getElementById("bc-model-wrap").classList.add("hidden");
+        function selectBrand(brand) {
+            currentBrand = brand;
             renderBrands();
+            renderModels(DATABASE[brand]);
+            if (DATABASE[brand].length > 0) {
+                selectModel(DATABASE[brand][0]);
+            }
         }
 
-        function selectBrand(brandKey) {
-            currentBrand = brandKey;
-            currentModel = null;
-            document.getElementById("view-brands").classList.add("hidden");
-            document.getElementById("view-models").classList.remove("hidden");
-            document.getElementById("view-pricing").classList.add("hidden");
-            
-            document.getElementById("bc-brand-wrap").classList.remove("hidden");
-            document.getElementById("bc-brand-wrap").classList.add("flex");
-            document.getElementById("bc-brand").innerText = storeData[brandKey].name;
-            document.getElementById("bc-model-wrap").classList.add("hidden");
-            
-            document.getElementById("current-brand-title").innerText = `Hãng: ${storeData[brandKey].name}`;
-            renderModels();
+        function renderModels(models) {
+            const modelContainer = document.getElementById("modelList");
+            document.getElementById("modelCount").innerText = models.length;
+            modelContainer.innerHTML = "";
+            models.forEach(model => {
+                const btn = document.createElement("button");
+                btn.className = `model-btn ${model === currentModel ? 'active' : ''}`;
+                btn.innerHTML = `<span>${model}</span> <i class="fa-solid fa-chevron-right" style="font-size:0.7rem;"></i>`;
+                btn.onclick = () => selectModel(model);
+                modelContainer.appendChild(btn);
+            });
         }
 
-        function selectModel(modelName) {
-            currentModel = modelName;
-            document.getElementById("view-brands").classList.add("hidden");
-            document.getElementById("view-models").classList.add("hidden");
-            document.getElementById("view-pricing").classList.remove("hidden");
+        function selectModel(model) {
+            currentModel = model;
+            document.getElementById("selectedBrand").innerText = currentBrand.toUpperCase();
+            document.getElementById("selectedModel").innerText = model;
             
-            document.getElementById("bc-model-wrap").classList.remove("hidden");
-            document.getElementById("bc-model-wrap").classList.add("flex");
-            document.getElementById("bc-model").innerText = modelName;
-            
-            document.getElementById("pricing-brand-badge").innerText = storeData[currentBrand].name;
-            document.getElementById("current-model-title").innerText = modelName;
-            renderPricingTable();
-        }
-
-        function backToModels() {
-            currentModel = null;
-            document.getElementById("view-pricing").classList.add("hidden");
-            document.getElementById("view-models").classList.remove("hidden");
-            document.getElementById("bc-model-wrap").classList.add("hidden");
-            renderModels();
-        }
-
-        function renderBrands(filter = "") {
-            const grid = document.getElementById("brands-grid");
-            grid.innerHTML = "";
-            
-            const keys = Object.keys(storeData);
-            const filtered = keys.filter(k => k.toLowerCase().includes(filter.toLowerCase()));
-
-            filtered.forEach(key => {
-                const brand = storeData[key];
-                const modelCount = Object.keys(brand.models || {}).length;
-                const card = document.createElement("div");
-                card.className = "glass-panel p-5 rounded-2xl cursor-pointer hover:border-rose-500/50 hover:bg-slate-900/90 transition group flex flex-col justify-between shadow-lg relative overflow-hidden";
-                card.onclick = () => selectBrand(key);
-                card.innerHTML = `
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-rose-400 text-xl group-hover:scale-110 group-hover:bg-rose-600 group-hover:text-white transition duration-300 shadow">
-                            <i class="${brand.icon || 'fa-solid fa-mobile'}"></i>
-                        </div>
-                        <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 group-hover:text-slate-200 transition">${modelCount} model</span>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-white group-hover:text-rose-400 transition">${brand.name}</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Nhấn để xem danh sách máy</p>
-                    </div>
-                `;
-                grid.appendChild(card);
+            // Highlight model button
+            document.querySelectorAll(".model-btn").forEach(btn => {
+                if (btn.innerText.trim() === model) btn.classList.add("active");
+                else btn.classList.remove("active");
             });
 
-            const addCard = document.createElement("div");
-            addCard.className = "glass-panel p-5 rounded-2xl cursor-pointer border-dashed border-2 border-slate-700/70 hover:border-rose-500 hover:bg-slate-900/60 transition flex flex-col items-center justify-center text-center group";
-            addCard.onclick = () => openModal('modal-brand');
-            addCard.innerHTML = `
-                <div class="w-12 h-12 rounded-full bg-slate-800/80 group-hover:bg-rose-600 text-slate-300 group-hover:text-white flex items-center justify-center text-lg transition mb-2 shadow">
-                    <i class="fa-solid fa-plus"></i>
-                </div>
-                <h3 class="text-base font-semibold text-slate-200 group-hover:text-rose-400 transition">+ Thêm Hãng Mới</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Bổ sung hãng điện thoại khác</p>
-            `;
-            grid.appendChild(addCard);
+            renderPriceTable();
         }
 
-        function filterBrands() {
-            const query = document.getElementById("brand-search").value;
-            renderBrands(query);
-        }
-
-        function renderModels(filter = "") {
-            const grid = document.getElementById("models-grid");
-            grid.innerHTML = "";
-            
-            if (!currentBrand || !storeData[currentBrand]) return;
-            const modelsObj = storeData[currentBrand].models || {};
-            const modelNames = Object.keys(modelsObj);
-            const filtered = modelNames.filter(m => m.toLowerCase().includes(filter.toLowerCase()));
-
-            filtered.forEach(modelName => {
-                const card = document.createElement("div");
-                card.className = "glass-panel p-4 rounded-xl cursor-pointer hover:border-rose-500/50 hover:bg-slate-900 transition flex items-center justify-between group shadow-md";
-                
-                const infoDiv = document.createElement("div");
-                infoDiv.className = "flex-1 pr-2 truncate";
-                infoDiv.onclick = () => selectModel(modelName);
-                infoDiv.innerHTML = `
-                    <h4 class="font-semibold text-slate-200 group-hover:text-rose-400 transition truncate">${modelName}</h4>
-                    <p class="text-xs text-slate-400 mt-0.5">Bấm để xem bảng giá 16 dịch vụ</p>
-                `;
-                
-                const deleteBtn = document.createElement("button");
-                deleteBtn.className = "text-slate-500 hover:text-rose-500 p-2 transition opacity-0 group-hover:opacity-100";
-                deleteBtn.title = "Xóa model này";
-                deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
-                deleteBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    if (confirm(`Bạn có chắc muốn xóa model "${modelName}" không?`)) {
-                        delete storeData[currentBrand].models[modelName];
-                        syncToCloud();
-                        renderModels(filter);
-                    }
-                };
-
-                card.appendChild(infoDiv);
-                card.appendChild(deleteBtn);
-                grid.appendChild(card);
-            });
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-500">Không tìm thấy model phù hợp. Hãy bấm "Thêm Model" ở góc trên.</div>`;
-            }
-        }
-
-        function filterModels() {
-            const query = document.getElementById("model-search").value;
-            renderModels(query);
-        }
-
-        function renderPricingTable() {
-            const tbody = document.getElementById("pricing-tbody");
+        function renderPriceTable() {
+            const tbody = document.getElementById("priceTableBody");
             tbody.innerHTML = "";
 
-            if (!currentBrand || !currentModel) return;
-            
-            if (!storeData[currentBrand].models[currentModel]) {
-                storeData[currentBrand].models[currentModel] = {};
+            if (!priceStore[currentModel]) {
+                priceStore[currentModel] = {};
             }
-            const modelPricing = storeData[currentBrand].models[currentModel];
 
-            const customServices = Object.keys(modelPricing);
-            const allServicesSet = new Set([...defaultServices, ...customServices]);
-            const servicesList = Array.from(allServicesSet);
+            SERVICES.forEach((service, index) => {
+                if (!priceStore[currentModel][service]) {
+                    // Default values
+                    priceStore[currentModel][service] = { cost: 0, sell: 0, warranty: "3 Tháng" };
+                }
 
-            servicesList.forEach((serviceName, index) => {
-                const data = modelPricing[serviceName] || { importPrice: "", replacePrice: "", repairPrice: "", note: "" };
+                const data = priceStore[currentModel][service];
+                const margin = data.sell > 0 ? Math.round(((data.sell - data.cost) / data.sell) * 100) : 0;
                 
                 const tr = document.createElement("tr");
-                tr.className = "hover:bg-slate-900/40 transition border-b border-slate-800/40";
                 tr.innerHTML = `
-                    <td class="p-4 text-center text-slate-500 font-mono text-xs">${index + 1}</td>
-                    <td class="p-4 font-medium text-slate-200">${serviceName}</td>
-                    <td class="p-4">
-                        <input type="text" data-service="${serviceName}" data-field="importPrice" value="${data.importPrice}" placeholder="Trống..." oninput="autoSavePrice(this)" class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-1.5 text-sm text-amber-300 placeholder-slate-600 focus:outline-none focus:border-rose-500">
+                    <td>${index + 1}</td>
+                    <td><strong>${service}</strong></td>
+                    <td>
+                        <input type="text" class="input-price" value="${formatCurrency(data.cost)}" 
+                            onchange="updatePrice('${service}', 'cost', this.value)">
                     </td>
-                    <td class="p-4">
-                        <input type="text" data-service="${serviceName}" data-field="replacePrice" value="${data.replacePrice}" placeholder="Trống..." oninput="autoSavePrice(this)" class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-1.5 text-sm text-emerald-400 placeholder-slate-600 focus:outline-none focus:border-rose-500">
+                    <td>
+                        <input type="text" class="input-price" style="color: #60a5fa; font-weight:600;" 
+                            value="${formatCurrency(data.sell)}" 
+                            onchange="updatePrice('${service}', 'sell', this.value)">
                     </td>
-                    <td class="p-4">
-                        <input type="text" data-service="${serviceName}" data-field="repairPrice" value="${data.repairPrice}" placeholder="Trống..." oninput="autoSavePrice(this)" class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-1.5 text-sm text-sky-400 placeholder-slate-600 focus:outline-none focus:border-rose-500">
+                    <td>
+                        <span class="margin-tag ${margin >= 30 ? 'margin-good' : 'margin-low'}">${margin}%</span>
                     </td>
-                    <td class="p-4">
-                        <input type="text" data-service="${serviceName}" data-field="note" value="${data.note}" placeholder="Ghi chú / BH..." oninput="autoSavePrice(this)" class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-1.5 text-sm text-slate-300 placeholder-slate-600 focus:outline-none focus:border-rose-500">
-                    </td>
-                    <td class="p-4 text-center">
-                        <button onclick="deleteService('${serviceName}')" class="text-slate-600 hover:text-rose-500 p-1.5 transition" title="Xóa dịch vụ này">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
-                        </button>
+                    <td>
+                        <input type="text" class="input-price" style="width:90px; text-align:center;" 
+                            value="${data.warranty}" 
+                            onchange="updatePrice('${service}', 'warranty', this.value)">
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function filterPricingTable() {
-            const query = document.getElementById("pricing-search").value.toLowerCase();
-            const tbody = document.getElementById("pricing-tbody");
-            const rows = tbody.getElementsByTagName("tr");
+        function updatePrice(service, field, val) {
+            if (field === 'cost' || field === 'sell') {
+                const num = parseInt(val.replace(/\D/g, '')) || 0;
+                priceStore[currentModel][service][field] = num;
+            } else {
+                priceStore[currentModel][service][field] = val;
+            }
+            renderPriceTable();
+        }
 
-            for (let i = 0; i < rows.length; i++) {
-                const serviceNameCell = rows[i].getElementsByTagName("td")[1];
-                if (serviceNameCell) {
-                    const textValue = serviceNameCell.textContent || serviceNameCell.innerText;
-                    if (textValue.toLowerCase().indexOf(query) > -1) {
-                        rows[i].style.display = "";
-                    } else {
-                        rows[i].style.display = "none";
+        function formatCurrency(num) {
+            if (!num) return "0";
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        // GLOBAL SEARCH FUNCTION
+        function handleSearch() {
+            const query = document.getElementById("globalSearch").value.toLowerCase().trim();
+            if (!query) {
+                renderModels(DATABASE[currentBrand]);
+                return;
+            }
+
+            let matches = [];
+            Object.keys(DATABASE).forEach(brand => {
+                DATABASE[brand].forEach(model => {
+                    if (model.toLowerCase().includes(query)) {
+                        matches.push({ brand, model });
                     }
-                }
+                });
+            });
+
+            const modelContainer = document.getElementById("modelList");
+            document.getElementById("modelCount").innerText = matches.length;
+            modelContainer.innerHTML = "";
+
+            matches.forEach(item => {
+                const btn = document.createElement("button");
+                btn.className = `model-btn ${item.model === currentModel ? 'active' : ''}`;
+                btn.innerHTML = `<span>${item.model} <small style="color:var(--text-sub);">(${item.brand})</small></span>`;
+                btn.onclick = () => {
+                    currentBrand = item.brand;
+                    renderBrands();
+                    selectModel(item.model);
+                };
+                modelContainer.appendChild(btn);
+            });
+
+            if (matches.length > 0 && query.length > 2) {
+                currentBrand = matches[0].brand;
+                selectModel(matches[0].model);
             }
         }
 
-        function autoSavePrice(input) {
-            const service = input.getAttribute("data-service");
-            const field = input.getAttribute("data-field");
-            const val = input.value;
-
-            if (!storeData[currentBrand].models[currentModel][service]) {
-                storeData[currentBrand].models[currentModel][service] = { importPrice: "", replacePrice: "", repairPrice: "", note: "" };
-            }
-            storeData[currentBrand].models[currentModel][service][field] = val;
-        }
-
-        function saveAllPrices() {
-            syncToCloud();
-            alert("Đã lưu bảng báo giá thành công trên hệ thống Cloud realtime!");
-        }
-
-        function openExportModal() {
-            if (!currentBrand || !currentModel) return;
+        // ZALO MODAL
+        function openZaloModal() {
+            const modal = document.getElementById("zaloModal");
+            const textarea = document.getElementById("zaloText");
             
-            let text = `📱 BÁO GIÁ SỬA CHỮA - ĐỨC MẠNH MOBILE\n`;
-            text += `🔹 Dòng máy: ${currentModel} (${storeData[currentBrand].name})\n`;
-            text += `----------------------------------------\n`;
+            let text = `📱 *BÁO GIÁ SỬA CHỮA - ĐỨC MẠNH MOBILE*\n`;
+            text += `📌 *Dòng máy:* ${currentModel}\n`;
+            text += `-----------------------------------\n`;
 
-            const modelPricing = storeData[currentBrand].models[currentModel] || {};
-            let count = 1;
-
-            for (const [service, data] of Object.entries(modelPricing)) {
-                if (data.repairPrice || data.replacePrice || data.importPrice) {
-                    let details = [];
-                    if (data.repairPrice) details.push(`Sửa: ${data.repairPrice}đ`);
-                    if (data.replacePrice) details.push(`Thay: ${data.replacePrice}đ`);
-                    text += `${count}. ${service}: ${details.join(' | ')} ${data.note ? '(' + data.note + ')' : ''}\n`;
-                    count++;
+            let hasPrice = false;
+            SERVICES.forEach(service => {
+                const item = priceStore[currentModel]?.[service];
+                if (item && item.sell > 0) {
+                    text += `🔹 ${service}: *${formatCurrency(item.sell)} VNĐ* (BH: ${item.warranty})\n`;
+                    hasPrice = true;
                 }
+            });
+
+            if (!hasPrice) {
+                text += `(Chưa có giá cập nhật cho dòng máy này, vui lòng liên hệ trực tiếp hotline!)\n`;
             }
 
-            text += `----------------------------------------\n`;
-            text += `💬 Liên hệ trực tiếp cửa hàng để được hỗ trợ tốt nhất!`;
+            text += `-----------------------------------\n`;
+            text += `⚡ *Đức Mạnh Mobile* - Cam kết linh kiện chuẩn, lấy ngay!\n`;
+            text += `📞 Hotline/Zalo support tư vấn trực tiếp!`;
 
-            document.getElementById("export-text-content").value = text;
-            openModal('modal-export');
+            textarea.value = text;
+            modal.style.display = "flex";
         }
 
-        function copyExportText() {
-            const textarea = document.getElementById("export-text-content");
+        function closeZaloModal() {
+            document.getElementById("zaloModal").style.display = "none";
+        }
+
+        function copyToClipboard() {
+            const textarea = document.getElementById("zaloText");
             textarea.select();
             document.execCommand("copy");
-            alert("Đã sao chép nội dung bảng giá vào bộ nhớ tạm!");
-            closeModal('modal-export');
+            alert("Đã sao chép bảng báo giá! Bạn có thể dán (Paste) trực tiếp vào Zalo gửi khách.");
+            closeZaloModal();
         }
-
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.remove("hidden");
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add("hidden");
-            if (modalId === 'modal-brand') document.getElementById("new-brand-name").value = "";
-            if (modalId === 'modal-model') document.getElementById("new-model-name").value = "";
-            if (modalId === 'modal-service') document.getElementById("new-service-name").value = "";
-        }
-
-        function confirmAddBrand() {
-            const nameInput = document.getElementById("new-brand-name").value.trim();
-            if (!nameInput) {
-                alert("Vui lòng nhập tên hãng!");
-                return;
-            }
-            const key = nameInput;
-            if (storeData[key]) {
-                alert("Hãng này đã tồn tại trong hệ thống!");
-                return;
-            }
-            storeData[key] = {
-                name: nameInput,
-                icon: "fa-solid fa-mobile-screen",
-                models: {}
-            };
-            syncToCloud();
-            closeModal('modal-brand');
-            renderBrands();
-        }
-
-        function openAddModelModal() {
-            openModal('modal-model');
-        }
-
-        function confirmAddModel() {
-            const modelName = document.getElementById("new-model-name").value.trim();
-            if (!modelName) {
-                alert("Vui lòng nhập tên model máy!");
-                return;
-            }
-            if (!storeData[currentBrand].models) {
-                storeData[currentBrand].models = {};
-            }
-            if (storeData[currentBrand].models[modelName]) {
-                alert("Model này đã tồn tại trong danh sách!");
-                return;
-            }
-            storeData[currentBrand].models[modelName] = {};
-            syncToCloud();
-            closeModal('modal-model');
-            renderModels();
-        }
-
-        function openAddServiceModal() {
-            openModal('modal-service');
-        }
-
-        function confirmAddService() {
-            const serviceName = document.getElementById("new-service-name").value.trim();
-            if (!serviceName) {
-                alert("Vui lòng nhập tên dịch vụ!");
-                return;
-            }
-            if (!storeData[currentBrand].models[currentModel][serviceName]) {
-                storeData[currentBrand].models[currentModel][serviceName] = { importPrice: "", replacePrice: "", repairPrice: "", note: "" };
-            }
-            syncToCloud();
-            closeModal('modal-service');
-            renderPricingTable();
-        }
-
-        function deleteService(serviceName) {
-            if (confirm(`Bạn có muốn xóa dịch vụ "${serviceName}" khỏi model này không?`)) {
-                if (storeData[currentBrand].models[currentModel][serviceName]) {
-                    delete storeData[currentBrand].models[currentModel][serviceName];
-                    syncToCloud();
-                    renderPricingTable();
-                }
-            }
-        }
-
-        window.onload = initApp;
     </script>
 </body>
 </html>
-
